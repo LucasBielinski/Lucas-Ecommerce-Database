@@ -20,6 +20,7 @@ Product.belongsToMany(Tag, {
     model: ProductTag,
     unique: false,
   },
+  as: "tag-product",
 });
 
 Tag.belongsToMany(Product, {
@@ -27,6 +28,7 @@ Tag.belongsToMany(Product, {
     model: ProductTag,
     unique: false,
   },
+  as: "tag-product",
 });
 
 // why not export the whole file?
