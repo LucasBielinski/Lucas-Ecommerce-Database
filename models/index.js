@@ -5,7 +5,7 @@ const Tag = require("./Tag");
 const ProductTag = require("./ProductTag");
 
 // Products belongsTo Category
-// why belongs too?
+
 Product.belongsTo(Category, {
   foreignKey: "categor_id",
   // onDelete: "CASCADE",

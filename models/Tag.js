@@ -3,7 +3,7 @@ const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/connection.js");
 
 class Tag extends Model {}
-
+// creates rules for tag model
 Tag.init(
   {
     id: {
