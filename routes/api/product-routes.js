@@ -7,13 +7,15 @@ const { Product, Category, Tag, ProductTag } = require("../../models");
 router.get("/", async (req, res) => {
   try {
     const productData = await Product.findAll({
-      include: [
-        { model: Category, Tag, through: ProductTag, as: "tag-product" },
-      ],
+      include: {
+        all: true,
+        nested: true,
+      },
     });
     res.status(200).json(productData);
   } catch (error) {
-    res.status(500).json(err);
+    console.log(error);
+    res.status(500).json(error);
   }
 });
 
@@ -21,41 +23,63 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const productData = await Product.findByPk(req.params.id, {
-      include: [
-        { model: Category, Tag, through: ProductTag, as: "tag-product" },
-      ],
+      include: {
+        all: true,
+        nest: true,
+      },
     });
     if (!productData) {
       res.status(404).json({ message: "product not found" });
     }
     res.status(200).json(productData);
   } catch (error) {
-    res.status(500).json(err);
+    res.status(500).json(error);
   }
 });
 
 // create new product
-router.post("/", (req, res) => {
-  Product.create(req.body)
-    .then((product) => {
-      // if there's product tags, we need to create pairings to bulk create in the ProductTag model
-      if (req.body.tagIds.length) {
-        const productTagIdArr = req.body.tagIds.map((tag_id) => {
-          return {
-            product_id: product.id,
-            tag_id,
-          };
-        });
-        return ProductTag.bulkCreate(productTagIdArr);
-      }
-      // if no product tags, just respond
+// router.post("/", (req, res) => {
+//   Product.create(req.body)
+//     .then((product) => {
+//       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
+//       if (req.body.tagIds.length) {
+//         const productTagIdArr = req.body.tagIds.map((tag_id) => {
+//           return {
+//             product_id: product.id,
+//             tag_id,
+//           };
+//         });
+//         return ProductTag.bulkCreate(productTagIdArr);
+//       }
+//       // if no product tags, just respond
+//       res.status(200).json(product);
+//     })
+//     .then((productTagIds) => res.status(200).json(productTagIds))
+//     .catch((err) => {
+//       console.log(err);
+//       res.status(400).json(err);
+//     });
+// });
+
+router.post("/", async (req, res) => {
+  try {
+    const product = await Product.create(req.body);
+    if (!req.body.tagIds || !req.body?.tagIds.length) {
       res.status(200).json(product);
-    })
-    .then((productTagIds) => res.status(200).json(productTagIds))
-    .catch((err) => {
-      console.log(err);
-      res.status(400).json(err);
+      return;
+    }
+    const productTagIdArr = req.body.tagIds.map((tag_id) => {
+      return {
+        product_id: product.id,
+        tag_id,
+      };
     });
+    productTagData = await ProductTag.bulkCreate(productTagIdArr);
+    res.status(200).json(productTagData);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json(error);
+  }
 });
 
 // update product
@@ -67,7 +91,7 @@ router.put("/:id", (req, res) => {
     },
   })
     .then((product) => {
-      // console.log(product)
+      console.log(product);
       return ProductTag.findAll({ where: { product_id: req.params.id } });
     })
     .then((productTags) => {
